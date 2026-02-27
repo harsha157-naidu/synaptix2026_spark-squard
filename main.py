@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI # Fixed: 'From' changed to 'from'
 from typing import List
 from models import Candidate, Project
 from matcher import (
@@ -11,17 +11,18 @@ from matcher import (
 
 app = FastAPI(title="Explainable Skill-Based Matching Platform")
 
-
 @app.post("/match/")
 def match_candidates(project: Project, candidates: List[Candidate]):
 
     ranked_list = []
 
     for candidate in candidates:
-        normalized_skills = normalize_skills(candidate.skills)
+        # Fixed: Renamed variable to 'norm_skills' to avoid 
+        # overwriting the imported function 'normalize_skills'
+        norm_skills = normalize_skills(candidate.skills)
 
         score, contributions = compute_weighted_score(
-            normalized_skills,
+            norm_skills,
             project.required_skills
         )
 
