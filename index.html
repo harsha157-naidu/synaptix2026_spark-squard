@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Explainable Internship Matching Platform</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+body{
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:20px;
+    background: linear-gradient(-45deg,#ff6ec4,#7873f5,#42e695,#f093fb);
+    background-size: 400% 400%;
+    animation: gradientBG 10s ease infinite;
+    color:white;
+}
+
+@keyframes gradientBG{
+    0%{background-position:0% 50%;}
+    50%{background-position:100% 50%;}
+    100%{background-position:0% 50%;}
+}
+
+.container{
+    width:1100px;
+    max-width:100%;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(20px);
+    border-radius:20px;
+    padding:30px;
+    box-shadow:0 15px 40px rgba(0,0,0,0.3);
+}
+
+h1{
+    text-align:center;
+    margin-bottom:25px;
+    font-size:30px;
+    letter-spacing:1px;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:25px;
+}
+
+.card{
+    background: rgba(255,255,255,0.2);
+    padding:20px;
+    border-radius:15px;
+    transition:0.3s;
+}
+
+.card:hover{
+    transform: translateY(-5px);
+    box-shadow:0 10px 25px rgba(0,0,0,0.3);
+}
+
+.card h2{
+    margin-bottom:15px;
+    font-size:20px;
+}
+
+label{
+    font-size:14px;
+}
+
+input{
+    width:100%;
+    padding:10px;
+    margin:6px 0 12px;
+    border-radius:8px;
+    border:none;
+    outline:none;
+}
+
+button{
+    width:100%;
+    padding:12px;
+    border-radius:10px;
+    border:none;
+    font-weight:bold;
+    cursor:pointer;
+    font-size:15px;
+    background: linear-gradient(90deg,#ff512f,#dd2476);
+    color:white;
+    transition:0.3s;
+}
+
+button:hover{
+    transform:scale(1.05);
+    box-shadow:0 5px 20px rgba(0,0,0,0.4);
+}
+
+.fairness-toggle{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:10px;
+}
+
+.result{
+    margin-top:25px;
+    padding:20px;
+    border-radius:15px;
+    background: rgba(0,0,0,0.3);
+}
+
+.candidate-item{
+    padding:12px;
+    margin:10px 0;
+    border-radius:12px;
+    cursor:pointer;
+    font-weight:bold;
+    background: linear-gradient(90deg,#00c6ff,#0072ff);
+    transition:0.3s;
+}
+
+.candidate-item:hover{
+    transform:scale(1.03);
+}
+
+.score-badge{
+    float:right;
+    background:white;
+    color:#333;
+    padding:4px 10px;
+    border-radius:20px;
+    font-size:13px;
+}
+
+.explanation{
+    margin-top:15px;
+    padding:15px;
+    border-radius:12px;
+    background: linear-gradient(135deg,#667eea,#764ba2);
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn{
+    from{opacity:0; transform:translateY(10px);}
+    to{opacity:1; transform:translateY(0);}
+}
+
+@media(max-width:900px){
+    .grid{
+        grid-template-columns:1fr;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+<h1>🚀 Explainable Skill-Based Internship Matching</h1>
+
+<div class="grid">
+
+<div class="card">
+<h2>🎯 Candidate Skills (0-10)</h2>
+
+<label>Programming</label>
+<input type="number" id="prog" min="0" max="10" value="7">
+
+<label>Communication</label>
+<input type="number" id="comm" min="0" max="10" value="6">
+
+<label>Problem Solving</label>
+<input type="number" id="problem" min="0" max="10" value="8">
+
+<label>Teamwork</label>
+<input type="number" id="team" min="0" max="10" value="7">
+
+<div class="fairness-toggle">
+<input type="checkbox" id="fairness">
+<label>Enable Fairness Adjustment ⚖️</label>
+</div>
+
+<button onclick="calculateMatch()">Calculate Match Score</button>
+</div>
+
+<div class="card">
+<h2>📌 Project Requirement Weights</h2>
+
+<label>Programming Weight</label>
+<input type="number" id="w_prog" value="4">
+
+<label>Communication Weight</label>
+<input type="number" id="w_comm" value="2">
+
+<label>Problem Solving Weight</label>
+<input type="number" id="w_problem" value="3">
+
+<label>Teamwork Weight</label>
+<input type="number" id="w_team" value="1">
+</div>
+
+</div>
+
+<div class="result">
+<h2>🏆 Ranked Candidates</h2>
+<div id="ranking"></div>
+<div id="explain"></div>
+</div>
+
+</div>
+
+<script>
+
+function calculateMatch(){
+
+let skills = {
+prog: parseFloat(document.getElementById("prog").value),
+comm: parseFloat(document.getElementById("comm").value),
+problem: parseFloat(document.getElementById("problem").value),
+team: parseFloat(document.getElementById("team").value)
+};
+
+let weights = {
+prog: parseFloat(document.getElementById("w_prog").value),
+comm: parseFloat(document.getElementById("w_comm").value),
+problem: parseFloat(document.getElementById("w_problem").value),
+team: parseFloat(document.getElementById("w_team").value)
+};
+
+let fairness = document.getElementById("fairness").checked;
+
+let totalWeight = weights.prog + weights.comm + weights.problem + weights.team;
+
+let score =
+(skills.prog * weights.prog +
+skills.comm * weights.comm +
+skills.problem * weights.problem +
+skills.team * weights.team) / totalWeight;
+
+if(fairness){
+score = score * 1.05;
+}
+
+score = score.toFixed(2);
+
+document.getElementById("ranking").innerHTML = `
+<div class="candidate-item" onclick="showExplanation(${score})">
+Candidate A 
+<span class="score-badge">${score}</span>
+</div>
+`;
+
+}
+
+function showExplanation(score){
+
+document.getElementById("explain").innerHTML = `
+<div class="explanation">
+<strong>📊 Match Score Breakdown</strong><br><br>
+✔ Weighted competency scoring applied.<br>
+✔ Skills mapped to project importance.<br>
+✔ Fairness Adjustment: ${document.getElementById("fairness").checked ? "Enabled ⚖️" : "Disabled"}<br><br>
+⭐ Final Match Score: <b>${score}</b><br><br>
+This ranking is fully transparent and based on data-driven weighted evaluation instead of keyword matching.
+</div>
+`;
+
+}
+
+</script>
+<script src="script.js"></script>
+
+</body>
+</html>
